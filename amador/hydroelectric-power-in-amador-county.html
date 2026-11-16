@@ -53,6 +53,15 @@
   a.mrow .meta .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
   .chltag { color:#7a5c06; font-weight:bold; }
   .hidden { display:none; }
+  /* must out-specify a.mrow's display (0,1,1) or filtered rows never hide */
+  a.mrow.hidden { display:none; }
+  /* plaque photos (hotlinked from HMdb, credit underneath) */
+  .plaque-photo { margin:18px 0 4px; text-align:center; }
+  .plaque-photo img { max-width:100%; height:auto; max-height:540px; border:1px solid var(--rule); border-radius:6px; background:#fffdf8; }
+  .plaque-photo figcaption { font-family:Helvetica,Arial,sans-serif; font-size:12.5px; color:var(--muted); margin-top:6px; }
+  a.mrow { display:flex; align-items:center; gap:12px; }
+  a.mrow img.thumb { width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--rule); flex:0 0 auto; background:#fffdf8; }
+  a.mrow .txt { flex:1; min-width:0; }
 </style>
 </head>
 <body>
@@ -64,6 +73,10 @@
   <div class="badges"><span class="badge"><span class="dot" style="background:#31597f"></span>County / Local</span><span class="badge">Amador County</span></div>
 </header>
 
+<figure class="plaque-photo">
+  <a href="https://www.hmdb.org/m.asp?m=106398"><img src="https://www.hmdb.org/Photos3/392/Photo392359.jpg?812017105500AM" alt="Photograph of the Hydroelectric Power in Amador County marker" loading="lazy"></a>
+  <figcaption>Photographed by Syd Whittle, July 31, 2017 · Photo via the <a href="https://www.hmdb.org/m.asp?m=106398">Historical Marker Database</a></figcaption>
+</figure>
 <h2>Where it stands</h2>
 <p>Old Route 49 (Main Street) near Worley Street, on the left when traveling north, at the parking area for Miners&#x27; Bend Park; 29 Old Route 49, Sutter Creek CA 95685</p>
 <p class="coords"><strong>Coordinates:</strong> 38.389400, -120.800900 &nbsp;·&nbsp; <a href="https://www.google.com/maps?q=38.3894,-120.8009">View on map &rarr;</a></p><div id="minimap"></div>

@@ -53,6 +53,15 @@
   a.mrow .meta .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
   .chltag { color:#7a5c06; font-weight:bold; }
   .hidden { display:none; }
+  /* must out-specify a.mrow's display (0,1,1) or filtered rows never hide */
+  a.mrow.hidden { display:none; }
+  /* plaque photos (hotlinked from HMdb, credit underneath) */
+  .plaque-photo { margin:18px 0 4px; text-align:center; }
+  .plaque-photo img { max-width:100%; height:auto; max-height:540px; border:1px solid var(--rule); border-radius:6px; background:#fffdf8; }
+  .plaque-photo figcaption { font-family:Helvetica,Arial,sans-serif; font-size:12.5px; color:var(--muted); margin-top:6px; }
+  a.mrow { display:flex; align-items:center; gap:12px; }
+  a.mrow img.thumb { width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--rule); flex:0 0 auto; background:#fffdf8; }
+  a.mrow .txt { flex:1; min-width:0; }
 </style>
 </head>
 <body>
@@ -64,6 +73,10 @@
   <div class="badges"><span class="badge"><span class="dot" style="background:#b8860b"></span>State landmark (CHL)</span><span class="badge chl">California Historical Landmark No. 506</span><span class="badge">Amador County</span></div>
 </header>
 
+<figure class="plaque-photo">
+  <a href="https://www.hmdb.org/m.asp?m=241817"><img src="https://www.hmdb.org/Photos7/775/Photo775947.jpg?5132024100500PM" alt="Photograph of the Methodist Episcopal Church marker" loading="lazy"></a>
+  <figcaption>Photographed by Mark Parker, October 10, 2023 · Photo via the <a href="https://www.hmdb.org/m.asp?m=241817">Historical Marker Database</a></figcaption>
+</figure>
 <h2>Where it stands</h2>
 <p>Intersection of West Marlette Street and South Sacramento St, on the left when traveling south on West Marlette Street; at or near 150 West Marlette Street, Ione CA 95640</p>
 <p class="coords"><strong>Coordinates:</strong> 38.350633, -120.930850 &nbsp;·&nbsp; <a href="https://www.google.com/maps?q=38.350633,-120.93085">View on map &rarr;</a></p><div id="minimap"></div>

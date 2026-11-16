@@ -53,6 +53,15 @@
   a.mrow .meta .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
   .chltag { color:#7a5c06; font-weight:bold; }
   .hidden { display:none; }
+  /* must out-specify a.mrow's display (0,1,1) or filtered rows never hide */
+  a.mrow.hidden { display:none; }
+  /* plaque photos (hotlinked from HMdb, credit underneath) */
+  .plaque-photo { margin:18px 0 4px; text-align:center; }
+  .plaque-photo img { max-width:100%; height:auto; max-height:540px; border:1px solid var(--rule); border-radius:6px; background:#fffdf8; }
+  .plaque-photo figcaption { font-family:Helvetica,Arial,sans-serif; font-size:12.5px; color:var(--muted); margin-top:6px; }
+  a.mrow { display:flex; align-items:center; gap:12px; }
+  a.mrow img.thumb { width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--rule); flex:0 0 auto; background:#fffdf8; }
+  a.mrow .txt { flex:1; min-width:0; }
 </style>
 </head>
 <body>
@@ -64,6 +73,10 @@
   <div class="badges"><span class="badge"><span class="dot" style="background:#8a8378"></span>Other organizations</span><span class="badge">Placer County</span></div>
 </header>
 
+<figure class="plaque-photo">
+  <a href="https://www.hmdb.org/m.asp?m=143686"><img src="https://www.hmdb.org/Photos5/505/Photo505619.jpg?12192019115800PM" alt="Photograph of the A Brief History of the Blue Anchor Shed marker" loading="lazy"></a>
+  <figcaption>Photographed by Andrew Ruppenstein, April 12, 2016 · Photo via the <a href="https://www.hmdb.org/m.asp?m=143686">Historical Marker Database</a></figcaption>
+</figure>
 <h2>Where it stands</h2>
 <p>On Horseshoe Bar Road, in Blue Anchor Park; at or near 5775 Horseshoe Bar Road, Loomis CA 95650</p>
 <p class="coords"><strong>Coordinates:</strong> 38.821450, -121.194350 &nbsp;·&nbsp; <a href="https://www.google.com/maps?q=38.82145,-121.19435">View on map &rarr;</a></p><div id="minimap"></div>

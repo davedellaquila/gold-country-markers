@@ -53,6 +53,15 @@
   a.mrow .meta .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
   .chltag { color:#7a5c06; font-weight:bold; }
   .hidden { display:none; }
+  /* must out-specify a.mrow's display (0,1,1) or filtered rows never hide */
+  a.mrow.hidden { display:none; }
+  /* plaque photos (hotlinked from HMdb, credit underneath) */
+  .plaque-photo { margin:18px 0 4px; text-align:center; }
+  .plaque-photo img { max-width:100%; height:auto; max-height:540px; border:1px solid var(--rule); border-radius:6px; background:#fffdf8; }
+  .plaque-photo figcaption { font-family:Helvetica,Arial,sans-serif; font-size:12.5px; color:var(--muted); margin-top:6px; }
+  a.mrow { display:flex; align-items:center; gap:12px; }
+  a.mrow img.thumb { width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--rule); flex:0 0 auto; background:#fffdf8; }
+  a.mrow .txt { flex:1; min-width:0; }
 </style>
 </head>
 <body>
@@ -64,6 +73,10 @@
   <div class="badges"><span class="badge"><span class="dot" style="background:#b8860b"></span>State landmark (CHL)</span><span class="badge chl">California Historical Landmark No. 701</span><span class="badge">El Dorado County</span></div>
 </header>
 
+<figure class="plaque-photo">
+  <a href="https://www.hmdb.org/m.asp?m=57973"><img src="https://www.hmdb.org/Photos/40/Photo40217.jpg?11252005" alt="Photograph of the Placerville Pony Express marker" loading="lazy"></a>
+  <figcaption>Photographed by Syd Whittle, October 18, 2008 · Photo via the <a href="https://www.hmdb.org/m.asp?m=57973">Historical Marker Database</a></figcaption>
+</figure>
 <h2>Where it stands</h2>
 <p>At the intersection of Main Street and Sacramento Street, on the right when traveling east on Main Street, Placerville CA 95667</p>
 <p class="coords"><strong>Coordinates:</strong> 38.727883, -120.803283 &nbsp;·&nbsp; <a href="https://www.google.com/maps?q=38.727883,-120.803283">View on map &rarr;</a></p><p><strong>Erected by:</strong> James W. Marshall Chapter 49</p><div id="minimap"></div>

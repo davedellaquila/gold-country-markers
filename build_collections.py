@@ -24,6 +24,18 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent
 DATA = Path.home() / "workspace/goals/event-manager/hidden_files/event-buddy/staged-locations"
 
+# First (marker/plaque) photo per marker, harvested from HMdb by
+# harvest_photos.py: {hmdbId: {photoUrl, credit, caption}}. The photos
+# are hotlinked from HMdb, never copied; the credit prints underneath.
+PHOTOS_FILE = REPO / "photos.json"
+PHOTOS = {}
+if PHOTOS_FILE.exists():
+    PHOTOS = {str(k): v for k, v in json.loads(PHOTOS_FILE.read_text()).items()}
+
+
+def photo_for(r):
+    return PHOTOS.get(str(r["hmdbId"]))
+
 COUNTY_ORDER = ["El Dorado", "Nevada", "Placer", "Amador",
                 "Tuolumne", "Calaveras", "Mariposa", "Sierra"]
 
@@ -83,6 +95,15 @@ BASE_CSS = """
   a.mrow .meta .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
   .chltag { color:#7a5c06; font-weight:bold; }
   .hidden { display:none; }
+  /* must out-specify a.mrow's display (0,1,1) or filtered rows never hide */
+  a.mrow.hidden { display:none; }
+  /* plaque photos (hotlinked from HMdb, credit underneath) */
+  .plaque-photo { margin:18px 0 4px; text-align:center; }
+  .plaque-photo img { max-width:100%; height:auto; max-height:540px; border:1px solid var(--rule); border-radius:6px; background:#fffdf8; }
+  .plaque-photo figcaption { font-family:Helvetica,Arial,sans-serif; font-size:12.5px; color:var(--muted); margin-top:6px; }
+  a.mrow { display:flex; align-items:center; gap:12px; }
+  a.mrow img.thumb { width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--rule); flex:0 0 auto; background:#fffdf8; }
+  a.mrow .txt { flex:1; min-width:0; }
 """
 
 
@@ -143,7 +164,18 @@ def detail_page(r, cslug):
   <h1>{esc(r['name'])}</h1>
   {badges_html(r)}
 </header>
-
+""")
+    photo = photo_for(r)
+    if photo and photo.get("photoUrl"):
+        credit = (photo.get("credit") or "").strip()
+        credit_html = f"{esc(credit)} · " if credit else ""
+        alt = r["name"]
+        parts.append(f"""
+<figure class="plaque-photo">
+  <a href="{esc(r['hmdbUrl'])}"><img src="{esc(photo['photoUrl'])}" alt="Photograph of the {esc(alt)} marker" loading="lazy"></a>
+  <figcaption>{credit_html}Photo via the <a href="{esc(r['hmdbUrl'])}">Historical Marker Database</a></figcaption>
+</figure>""")
+    parts.append(f"""
 <h2>Where it stands</h2>
 <p>{esc(r['address'])}</p>
 <p class="coords"><strong>Coordinates:</strong> {lat:.6f}, {lon:.6f} &nbsp;·&nbsp; <a href="https://www.google.com/maps?q={lat},{lon}">View on map &rarr;</a></p>""")
@@ -220,10 +252,13 @@ def county_page(county, recs, cslug):
         label, color, key = FAMILIES[r["markerType"]]
         chl = f' · <span class="chltag">CHL No. {esc(r["chlNumber"])}</span>' if r.get("chlNumber") not in (None, "") else ""
         text = f'{r["name"]} {r["city"]}'.lower()
+        photo = photo_for(r)
+        thumb = (f'<img class="thumb" src="{esc(photo["photoUrl"])}" alt="" loading="lazy">'
+                 if photo and photo.get("photoUrl") else "")
         rows.append(
             f'<a class="mrow" href="{esc(r["slug"])}.html" data-fam="{key}" data-text="{esc(text)}">'
-            f'<span class="nm">{esc(r["name"])}</span>'
-            f'<span class="meta" style="display:block"><span class="dot" style="background:{color}"></span>{esc(label)}{chl} · {esc(r["city"])}</span></a>')
+            f'{thumb}<span class="txt"><span class="nm">{esc(r["name"])}</span>'
+            f'<span class="meta" style="display:block"><span class="dot" style="background:{color}"></span>{esc(label)}{chl} · {esc(r["city"])}</span></span></a>')
     return f"""{head(f'{county} County markers — Reading the Roadside',
                      f'All {len(recs)} catalogued historical markers in {county} County, California — search the list and read each plaque.')}
 <p class="crumbs"><a href="../index.html">&larr; The catalogue</a></p>
@@ -326,6 +361,136 @@ def patch_summary(counties):
             src = src.replace(old_popup, new_popup, 1)
             done["map_links"] = len(slugs)
 
+    # 4. Map filter pills for the §5 map (Dave, Nov 16, 2026): TWO pill groups
+    # with AND logic between them — group 1 marker families, group 2 counties.
+    # A marker shows only when it matches the selected family AND the selected
+    # county; within a group a single pill is selected ("All"/"All families"
+    # by default). Markers are held in per-county layer groups and re-dealt on
+    # every selection; the map fits to whatever remains visible.
+    done["map_pills"] = False
+    if "county-pills" not in src:
+        pill_css = (
+            "\n  /* map filter pills (§5): family group + county group, AND logic */\n"
+            "  .county-pills { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:10px 0 4px; }\n"
+            "  .county-pills .grouplabel { font-family:Helvetica,Arial,sans-serif; font-size:11.5px;\n"
+            "    letter-spacing:.08em; text-transform:uppercase; color:#6d675c; margin-right:2px; }\n"
+            "  .cpill, .fpill { font-family:Helvetica,Arial,sans-serif; font-size:13.5px; padding:6px 14px;\n"
+            "    border-radius:999px; border:1.5px solid #2b2620; background:transparent; color:#2b2620;\n"
+            "    cursor:pointer; }\n"
+            "  .cpill:hover, .fpill:hover { background:#e9e2d0; }\n"
+            "  .cpill.active, .fpill.active { background:#2b2620; color:#fffdf8; font-weight:bold; }\n")
+        if "</style>" in src:
+            src = src.replace("</style>", pill_css + "</style>", 1)
+        fam_pills = ['<button class="fpill active" data-fam="all" onclick="setFam(\'all\')">All families</button>']
+        for idx, label in [(0, "CHL"), (1, "E Clampus Vitus"), (2, "Native Sons/Daughters"),
+                           (3, "County / Local"), (4, "Other")]:
+            fam_pills.append(
+                f'<button class="fpill" data-fam="{idx}" onclick="setFam(\'{idx}\')">{esc(label)}</button>')
+        county_pills = ['<button class="cpill active" data-county="All" onclick="setCounty(\'All\')">All</button>']
+        for county in sorted(counties):
+            county_pills.append(
+                f'<button class="cpill" data-county="{esc(county)}" '
+                f'onclick="setCounty(\'{esc(county)}\')">{esc(county)}</button>')
+        pills_html = (
+            '<div class="county-pills" role="group" aria-label="Filter the map by marker family">'
+            '<span class="grouplabel">Family</span>' + "".join(fam_pills) + "</div>\n"
+            '<div class="county-pills" role="group" aria-label="Filter the map by county">'
+            '<span class="grouplabel">County</span>' + "".join(county_pills) + "</div>\n")
+        src = src.replace('<div id="map"></div>', pills_html + '<div id="map"></div>', 1)
+
+        old_block = re.search(
+            r"var bounds = \[\];.*?map\.fitBounds\(bounds, \{ padding: \[12, 12\] \}\);\n", src, re.S)
+        if old_block:
+            new_block = (
+                "var ALLB = [];\n"
+                "var GROUPS = {}, BOUNDS_BY = {}, MARKERS = [];\n"
+                "PTS.forEach(function(p, i) {\n"
+                "  ALLB.push([p[0], p[1]]);\n"
+                "  var c = p[4];\n"
+                "  if (!GROUPS[c]) { GROUPS[c] = L.layerGroup(); BOUNDS_BY[c] = []; }\n"
+                "  BOUNDS_BY[c].push([p[0], p[1]]);\n"
+                "  var mk = L.circleMarker([p[0], p[1]], { radius: 3.5, weight: 0, fillColor: COLORS[p[2]], fillOpacity: 0.85 })\n"
+                "    .bindPopup('<strong>' + p[3].replace(/</g,'&lt;') + '</strong><br>' + FAMS[p[2]] + ' \\u00b7 ' + p[4] + ' County<br><a href=\"' + SLUGS[i] + '.html\">Details &rarr;</a>');\n"
+                "  MARKERS.push({ m: mk, c: c, f: p[2], ll: [p[0], p[1]] });\n"
+                "});\n"
+                "var SELF = 'all', SELC = 'All';\n"
+                "function applyFilter() {\n"
+                "  var vis = [];\n"
+                "  Object.keys(GROUPS).forEach(function(c) { GROUPS[c].clearLayers(); if (map.hasLayer(GROUPS[c])) map.removeLayer(GROUPS[c]); });\n"
+                "  MARKERS.forEach(function(r) {\n"
+                "    if ((SELC === 'All' || r.c === SELC) && (SELF === 'all' || r.f === SELF)) { r.m.addTo(GROUPS[r.c]); vis.push(r.ll); }\n"
+                "  });\n"
+                "  Object.keys(GROUPS).forEach(function(c) { if (GROUPS[c].getLayers().length) GROUPS[c].addTo(map); });\n"
+                "  map.fitBounds(vis.length ? vis : (SELC !== 'All' && BOUNDS_BY[SELC] ? BOUNDS_BY[SELC] : ALLB), { padding: [24, 24] });\n"
+                "}\n"
+                "function markActive(sel, attr, val) {\n"
+                "  var bs = document.querySelectorAll(sel);\n"
+                "  for (var j = 0; j < bs.length; j++) bs[j].classList.toggle('active', bs[j].getAttribute(attr) === val);\n"
+                "}\n"
+                "function setFam(f) { SELF = (f === 'all') ? 'all' : parseInt(f, 10); markActive('.fpill', 'data-fam', f); applyFilter(); }\n"
+                "function setCounty(c) { SELC = c; markActive('.cpill', 'data-county', c); applyFilter(); }\n"
+                "applyFilter();\n"
+                "var _q = new URLSearchParams(location.search);\n"
+                "if (_q.get('fam') !== null && ['0','1','2','3','4'].indexOf(_q.get('fam')) >= 0) setFam(_q.get('fam'));\n"
+                "if (_q.get('county') && BOUNDS_BY[_q.get('county')]) setCounty(_q.get('county'));\n")
+            src = src.replace(old_block.group(0), new_block, 1)
+            done["map_pills"] = True
+
+
+    # 5. Clickable charts, Money Buddy style (Dave, Nov 16, 2026): a county
+    # bar (§1 bars, §3 coverage rows) links to that county's list page; a
+    # family element (§2 donut segment or legend row) jumps to the §5 map
+    # with that family preselected in the pill filter. Whole elements are
+    # the targets, with a pointer cursor + hover fade.
+    done["chart_links"] = 0
+    if "chartlink" not in src:
+        chart_css = (
+            "\n  /* clickable chart elements */\n"
+            "  svg a.chartlink { cursor:pointer; }\n"
+            "  svg a.chartlink:hover { opacity:.72; }\n"
+            "  ul.legend a.chartlink { color:inherit; text-decoration:none; display:block; cursor:pointer; }\n"
+            "  ul.legend li:hover { background:#f3eddc; }\n")
+        if "</style>" in src:
+            src = src.replace("</style>", chart_css + "</style>", 1)
+
+        # §1 + §3 county rows: label + bar(s) + value, wrapped in one anchor
+        row_re = re.compile(
+            r'(<text x="102" y="[\d.]+" text-anchor="end" class="clabel">([A-Za-z ]+)</text>'
+            r'(?:<rect[^/]*/>)+'
+            r'<text x="[\d.]+" y="[\d.]+" class="cvalue">[^<]*</text>)')
+        def _wrap_row(m):
+            county = m.group(2)
+            if county not in counties:
+                return m.group(0)
+            done["chart_links"] += 1
+            return (f'<a class="chartlink" href="{county_slug(county)}/">'
+                    f'<title>{esc(county)} County markers</title>{m.group(1)}</a>')
+        src = row_re.sub(_wrap_row, src)
+
+        # §2 donut segments: family identified by its stroke colour
+        fam_by_color = {"#b8860b": 0, "#9a3b26": 1, "#2e5e4e": 2,
+                        "#31597f": 3, "#8a8378": 4}
+        seg_re = re.compile(r'<circle cx="130\.0" cy="130\.0" r="104\.0"[^>]*stroke="(#[0-9a-f]{6})"[^>]*/>')
+        def _wrap_seg(m):
+            idx = fam_by_color.get(m.group(1))
+            if idx is None:
+                return m.group(0)
+            done["chart_links"] += 1
+            return (f'<a class="chartlink" href="#map" onclick="setFam(\'{idx}\')">'
+                    f'<title>Show this family on the map</title>{m.group(0)}</a>')
+        src = seg_re.sub(_wrap_seg, src)
+
+        # §2 legend rows: family identified by the dot's background colour
+        leg_re = re.compile(
+            r'<li>(<span class="dot" style="background:(#[0-9a-f]{6})"></span>.*?)</li>')
+        def _wrap_leg(m):
+            idx = fam_by_color.get(m.group(2))
+            if idx is None:
+                return m.group(0)
+            done["chart_links"] += 1
+            return (f'<li><a class="chartlink" href="#map" onclick="setFam(\'{idx}\')">'
+                    f'{m.group(1)}</a></li>')
+        src = leg_re.sub(_wrap_leg, src)
     p.write_text(src)
     return done
 

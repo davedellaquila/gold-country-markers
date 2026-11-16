@@ -53,6 +53,15 @@
   a.mrow .meta .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
   .chltag { color:#7a5c06; font-weight:bold; }
   .hidden { display:none; }
+  /* must out-specify a.mrow's display (0,1,1) or filtered rows never hide */
+  a.mrow.hidden { display:none; }
+  /* plaque photos (hotlinked from HMdb, credit underneath) */
+  .plaque-photo { margin:18px 0 4px; text-align:center; }
+  .plaque-photo img { max-width:100%; height:auto; max-height:540px; border:1px solid var(--rule); border-radius:6px; background:#fffdf8; }
+  .plaque-photo figcaption { font-family:Helvetica,Arial,sans-serif; font-size:12.5px; color:var(--muted); margin-top:6px; }
+  a.mrow { display:flex; align-items:center; gap:12px; }
+  a.mrow img.thumb { width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--rule); flex:0 0 auto; background:#fffdf8; }
+  a.mrow .txt { flex:1; min-width:0; }
 </style>
 </head>
 <body>
@@ -64,6 +73,10 @@
   <div class="badges"><span class="badge"><span class="dot" style="background:#31597f"></span>County / Local</span><span class="badge">Placer County</span></div>
 </header>
 
+<figure class="plaque-photo">
+  <a href="https://www.hmdb.org/m.asp?m=112967"><img src="https://www.hmdb.org/Photos4/413/Photo413154.jpg?119201811700AM" alt="Photograph of the Roads and Bridges marker" loading="lazy"></a>
+  <figcaption>Photographed by Douglass Halvorsen, November 12, 2016 · Photo via the <a href="https://www.hmdb.org/m.asp?m=112967">Historical Marker Database</a></figcaption>
+</figure>
 <h2>Where it stands</h2>
 <p>On W Lake Blvd, on the right when traveling north (post office area: Tahoe City CA 96145)</p>
 <p class="coords"><strong>Coordinates:</strong> 39.167150, -120.144483 &nbsp;·&nbsp; <a href="https://www.google.com/maps?q=39.16715,-120.144483">View on map &rarr;</a></p><div id="minimap"></div>
