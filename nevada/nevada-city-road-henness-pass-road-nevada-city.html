@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nevada City Road – Nevada City / Henness Pass Road – Nevada City — Nevada County · Reading the Roadside</title>
+<meta name="description" content="Nevada City Road – Nevada City / Henness Pass Road – Nevada City: an Other organizations marker in Nevada City, Nevada County — its location and the words on its face.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root { --paper:#faf6ee; --ink:#2b2620; --muted:#6f6656; --rule:#d8cfba; --accent:#9a3b26; --gold:#b8860b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:Georgia,'Times New Roman',serif; line-height:1.55; }
+  .wrap { max-width:860px; margin:0 auto; padding:0 18px 48px; }
+  header { text-align:center; padding:34px 0 18px; border-bottom:3px double var(--ink); }
+  .kicker { font-family:Helvetica,Arial,sans-serif; font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:var(--accent); margin:0 0 8px; }
+  h1 { font-size:clamp(26px,6vw,40px); margin:0 0 8px; line-height:1.15; }
+  .sub { color:var(--muted); font-style:italic; margin:0; font-size:clamp(15px,3.5vw,18px); }
+  h2 { font-size:22px; margin:30px 0 4px; border-bottom:1px solid var(--rule); padding-bottom:6px; }
+  a { color:var(--accent); }
+  .crumbs { font-family:Helvetica,Arial,sans-serif; font-size:13.5px; padding:14px 0 0; }
+  .crumbs a { text-decoration:none; }
+  .crumbs a:hover { text-decoration:underline; }
+  .badges { margin:12px 0 2px; display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .badge { font-family:Helvetica,Arial,sans-serif; font-size:12px; letter-spacing:.4px; border:1px solid var(--rule); background:#fffdf8; border-radius:20px; padding:3px 10px; }
+  .badge .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; }
+  .badge.chl { border-color:var(--gold); color:#7a5c06; font-weight:bold; }
+  .note { background:#fffdf8; border:1px solid var(--rule); border-radius:6px; padding:14px 16px; margin:14px 0; }
+  .note h3 { margin:0 0 4px; font-size:16px; }
+  .note p { margin:0; }
+  .flag { border-left:3px solid var(--accent); padding:2px 0 2px 14px; margin:14px 0; }
+  .flag h3 { margin:0 0 2px; font-size:16px; }
+  .flag p { margin:0; }
+  .plaque { background:#fffdf8; border:1px solid var(--rule); border-radius:6px; padding:16px 18px; margin:12px 0; font-size:16.5px; }
+  .plaque p { margin:0 0 10px; }
+  .plaque p:last-child { margin-bottom:0; }
+  .partial-tag { font-family:Helvetica,Arial,sans-serif; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--accent); margin:0 0 8px; }
+  #minimap { height:280px; border:1px solid var(--rule); border-radius:6px; margin:12px 0 4px; z-index:0; }
+  .coords { font-variant-numeric:tabular-nums; }
+  footer { border-top:3px double var(--ink); margin-top:36px; padding-top:14px; color:var(--muted); font-size:14px; text-align:center; }
+  /* county list pages */
+  .fambreak { display:flex; flex-wrap:wrap; gap:6px 16px; font-family:Helvetica,Arial,sans-serif; font-size:13px; margin:14px 0 4px; }
+  .fambreak .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; }
+  .filters { margin:16px 0 6px; }
+  .filters input { width:100%; font-size:16px; font-family:Helvetica,Arial,sans-serif; padding:10px 12px; border:1px solid var(--rule); border-radius:6px; background:#fffdf8; color:var(--ink); }
+  .fbtns { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .fbtn { font-family:Helvetica,Arial,sans-serif; font-size:13px; border:1px solid var(--rule); background:#fffdf8; color:var(--ink); border-radius:20px; padding:5px 12px; cursor:pointer; }
+  .fbtn.on { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .showing { font-family:Helvetica,Arial,sans-serif; font-size:12.5px; color:var(--muted); margin:8px 0 0; }
+  a.mrow { display:block; text-decoration:none; color:var(--ink); border-bottom:1px solid var(--rule); padding:10px 4px; }
+  a.mrow:hover { background:#fffdf8; }
+  a.mrow .nm { font-size:17px; }
+  a.mrow .meta { font-family:Helvetica,Arial,sans-serif; font-size:12.5px; color:var(--muted); margin-top:2px; }
+  a.mrow .meta .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
+  .chltag { color:#7a5c06; font-weight:bold; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="crumbs"><a href="../index.html">&larr; The catalogue</a> &nbsp;·&nbsp; <a href="index.html">&larr; Nevada County markers</a></p>
+<header>
+  <p class="kicker">Gold Country · Nevada County</p>
+  <h1>Nevada City Road – Nevada City / Henness Pass Road – Nevada City</h1>
+  <div class="badges"><span class="badge"><span class="dot" style="background:#8a8378"></span>Other organizations</span><span class="badge">Nevada County</span></div>
+</header>
+
+<h2>Where it stands</h2>
+<p>Nevada Street north of Broad Street and Boulder Street, at the entrance to the Nevada Street parking lot, Nevada City; at or near 123 Nevada St, Nevada City CA 95959</p>
+<p class="coords"><strong>Coordinates:</strong> 39.262867, -121.016067 &nbsp;·&nbsp; <a href="https://www.google.com/maps?q=39.262867,-121.016067">View on map &rarr;</a></p><div id="minimap"></div>
+<h2>The words on the plaque</h2>
+<div class="plaque"><p>Two-sided Trails West marker (NC-11 + PH17). Henness Pass Road – Nevada City: &quot;Here [from Oak Tree Ranch] the Nevada [City] road turns off eight miles to Nevada [City]…&quot; —Jacob O. Hays, Sept 4, 1854. Nevada City Road – Nevada City: &quot;I passed through Nevada City, which was little else than a row of canvas covered houses on either side of the Emigrant Road in the valley of Deer Creek…&quot; —John Steele, Sep 23, 1850.</p></div>
+<h2>Source</h2>
+<p>Catalogued from the <a href="https://www.hmdb.org/m.asp?m=286487">Historical Marker Database</a> (marker No. 286487).</p>
+
+<footer>Reading the Roadside · The Gold Country Markers Catalogue · Compiled Nov 16, 2026<br>
+<a href="index.html">Nevada County markers</a> · <a href="../index.html">The catalogue</a></footer>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var m = L.map('minimap').setView([39.262867, -121.016067], 13);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap contributors' }).addTo(m);
+L.circleMarker([39.262867, -121.016067], { radius: 7, weight: 2, color: '#2b2620', fillColor: '#8a8378', fillOpacity: 0.9 }).addTo(m);
+</script>
+</body>
+</html>
