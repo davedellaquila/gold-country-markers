@@ -136,6 +136,7 @@ def head(title, desc, leaflet=False):
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 {leaf}<style>{BASE_CSS}</style>
+<script async src="https://visitor-counter.dave-5d7.workers.dev/beacon.js" data-site="gold-country-markers"></script>
 </head>
 <body>
 <div class="wrap">
@@ -491,6 +492,17 @@ def patch_summary(counties):
             return (f'<li><a class="chartlink" href="#map" onclick="setFam(\'{idx}\')">'
                     f'{m.group(1)}</a></li>')
         src = leg_re.sub(_wrap_leg, src)
+    # 6. Analytics Buddy visitor beacon on the front page (fleet counter;
+    # added to the generator Nov 16, 2026 so rebuilds keep it — Analytics
+    # Buddy's hand-insert is superseded by this guard: never duplicate it).
+    done["beacon"] = "visitor-counter" in src
+    if not done["beacon"] and "</body>" in src:
+        src = src.replace(
+            "</body>",
+            '<script async src="https://visitor-counter.dave-5d7.workers.dev/beacon.js" '
+            'data-site="gold-country-markers"></script>\n</body>', 1)
+        done["beacon"] = True
+
     p.write_text(src)
     return done
 
