@@ -49,7 +49,7 @@ FAMILIES = {
 }
 
 BASE_CSS = """
-  :root { --paper:#faf6ee; --ink:#2b2620; --muted:#6f6656; --rule:#d8cfba; --accent:#9a3b26; --gold:#b8860b; }
+  :root { --paper:#faf6ee; --ink:#2b2620; --muted:#6f6656; --rule:#d8cfba; --accent:#9a3b26; --gold:#b8860b; color-scheme:light dark; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--paper); color:var(--ink); font-family:Georgia,'Times New Roman',serif; line-height:1.55; }
   .wrap { max-width:860px; margin:0 auto; padding:0 18px 48px; }
@@ -104,6 +104,16 @@ BASE_CSS = """
   a.mrow { display:flex; align-items:center; gap:12px; }
   a.mrow img.thumb { width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--rule); flex:0 0 auto; background:#fffdf8; }
   a.mrow .txt { flex:1; min-width:0; }
+  /* dark mode — driven by the visitor's system setting (Dave, Nov 16, 2026).
+     Light theme above is untouched; here the palette variables swap and the
+     hard-coded light surfaces follow. Captions/pills ride the variables. */
+  @media (prefers-color-scheme: dark) {
+    :root { --paper:#16130f; --ink:#ede4d3; --muted:#a79b85; --rule:#453d2f; --accent:#e08a6d; --gold:#d9a92c; }
+    .badge, .note, .plaque, .filters input, .fbtn { background:#221e18; }
+    .badge.chl, .chltag { color:var(--gold); }
+    a.mrow:hover { background:#221e18; }
+    .plaque-photo img, a.mrow img.thumb { background:#221e18; }
+  }
 """
 
 
@@ -502,6 +512,29 @@ def patch_summary(counties):
             '<script async src="https://visitor-counter.dave-5d7.workers.dev/beacon.js" '
             'data-site="gold-country-markers"></script>\n</body>', 1)
         done["beacon"] = True
+
+    # 7. Dark mode for the front page (Dave, Nov 16, 2026): the same palette
+    # swap as the generated pages, plus this page's hard-coded pieces — stat
+    # tiles, the pill rows (dark text on a transparent ground would vanish on
+    # a dark page), the legend hover, and the §3 chart's light track bars.
+    done["dark_mode"] = "prefers-color-scheme" in src
+    if not done["dark_mode"] and "</style>" in src:
+        dark_css = (
+            "\n  :root { color-scheme:light dark; }\n"
+            "  /* dark mode — visitor's system setting; light theme untouched */\n"
+            "  @media (prefers-color-scheme: dark) {\n"
+            "    :root { --paper:#16130f; --ink:#ede4d3; --muted:#a79b85; --rule:#453d2f; --accent:#e08a6d; --gold:#d9a92c; }\n"
+            "    .tile, .note { background:#221e18; }\n"
+            "    .county-pills .grouplabel { color:#a79b85; }\n"
+            "    .cpill, .fpill { border-color:var(--ink); color:var(--ink); }\n"
+            "    .cpill:hover, .fpill:hover { background:#2c271e; }\n"
+            "    .cpill.active, .fpill.active { background:var(--ink); color:#16130f; }\n"
+            "    ul.legend li:hover { background:#26221b; }\n"
+            "    rect[fill=\"#e7ddc8\"] { fill:#3a342a; }\n"
+            "    .leaflet-container { background:#221e18; }\n"
+            "  }\n")
+        src = src.replace("</style>", dark_css + "</style>", 1)
+        done["dark_mode"] = True
 
     p.write_text(src)
     return done
