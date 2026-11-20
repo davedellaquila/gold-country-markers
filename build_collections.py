@@ -262,7 +262,7 @@ def county_page(county, recs, cslug):
     for r in recs:
         label, color, key = FAMILIES[r["markerType"]]
         chl = f' · <span class="chltag">CHL No. {esc(r["chlNumber"])}</span>' if r.get("chlNumber") not in (None, "") else ""
-        text = f'{r["name"]} {r["city"]}'.lower()
+        text = f'{r["name"]} {r["city"]} {r.get("address") or ""} {r.get("short_description") or ""}'.lower()
         photo = photo_for(r)
         thumb = (f'<img class="thumb" src="{esc(photo["photoUrl"])}" alt="" loading="lazy">'
                  if photo and photo.get("photoUrl") else "")
@@ -280,7 +280,7 @@ def county_page(county, recs, cslug):
 </header>
 <div class="fambreak">{''.join(chips)}</div>
 <div class="filters">
-  <input type="search" id="q" placeholder="Search by name or town…" aria-label="Search markers">
+  <input type="search" id="q" placeholder="Search by name, plaque text or place…" aria-label="Search markers">
   <div class="fbtns">{''.join(btns)}</div>
   <p class="showing" id="showing">Showing {len(recs)} of {len(recs)} markers · listed A–Z by name</p>
 </div>
@@ -289,6 +289,85 @@ def county_page(county, recs, cslug):
 </div>
 <footer>Reading the Roadside · The Gold Country Markers Catalogue · Compiled Nov 16, 2026<br>
 <a href="../index.html">Back to the catalogue</a></footer>
+</div>
+<script>
+var q = document.getElementById('q'), fam = 'all',
+    rows = Array.prototype.slice.call(document.querySelectorAll('.mrow')),
+    showing = document.getElementById('showing'), total = rows.length;
+function apply() {{
+  var needle = q.value.trim().toLowerCase(), n = 0;
+  rows.forEach(function(row) {{
+    var ok = (fam === 'all' || row.getAttribute('data-fam') === fam) &&
+             (!needle || row.getAttribute('data-text').indexOf(needle) !== -1);
+    row.classList.toggle('hidden', !ok);
+    if (ok) n++;
+  }});
+  showing.textContent = 'Showing ' + n + ' of ' + total + ' markers · listed A–Z by name';
+}}
+q.addEventListener('input', apply);
+document.querySelectorAll('.fbtn').forEach(function(b) {{
+  b.addEventListener('click', function() {{
+    document.querySelectorAll('.fbtn').forEach(function(x) {{ x.classList.remove('on'); }});
+    b.classList.add('on'); fam = b.getAttribute('data-fam'); apply();
+  }});
+}});
+</script>
+</body>
+</html>"""
+
+
+def all_page(counties):
+    """One listing page for the whole catalogue (Dave, Nov 20, 2026), carrying
+    the standard filter treatment at the top: a text box matching name /
+    plaque text / place, a mutually-exclusive pill row (All + the five
+    families), text and pill combining, and a live visible count."""
+    recs = []
+    for county in COUNTY_ORDER:
+        for r in counties[county]:
+            recs.append((county, r))
+    recs.sort(key=lambda cr: cr[1]["name"].lower())
+    total = len(recs)
+    fam_counts = Counter(r["markerType"] for _, r in recs)
+    chips = []
+    for mtype in FAMILIES:
+        if fam_counts.get(mtype):
+            label, color, _ = FAMILIES[mtype]
+            chips.append(f'<span><span class="dot" style="background:{color}"></span>{esc(label)} — <strong>{fam_counts[mtype]}</strong></span>')
+    btns = ['<button class="fbtn on" data-fam="all">All families</button>']
+    for mtype, (label, color, key) in FAMILIES.items():
+        if fam_counts.get(mtype):
+            btns.append(f'<button class="fbtn" data-fam="{key}">{esc(label)}</button>')
+    rows = []
+    for county, r in recs:
+        label, color, key = FAMILIES[r["markerType"]]
+        chl = f' · <span class="chltag">CHL No. {esc(r["chlNumber"])}</span>' if r.get("chlNumber") not in (None, "") else ""
+        text = f'{r["name"]} {r["city"]} {county} {r.get("address") or ""} {r.get("short_description") or ""}'.lower()
+        photo = photo_for(r)
+        thumb = (f'<img class="thumb" src="{esc(photo["photoUrl"])}" alt="" loading="lazy">'
+                 if photo and photo.get("photoUrl") else "")
+        rows.append(
+            f'<a class="mrow" href="{county_slug(county)}/{esc(r["slug"])}.html" data-fam="{key}" data-text="{esc(text)}">'
+            f'{thumb}<span class="txt"><span class="nm">{esc(r["name"])}</span>'
+            f'<span class="meta" style="display:block"><span class="dot" style="background:{color}"></span>{esc(label)}{chl} · {esc(r["city"])}, {esc(county)} County</span></span></a>')
+    return f"""{head('All markers — Reading the Roadside',
+                     f'All {total} catalogued historical markers across the eight Gold Country counties on one searchable page.')}
+<p class="crumbs"><a href="index.html">&larr; The catalogue</a></p>
+<header>
+  <p class="kicker">Gold Country · California</p>
+  <h1>All markers</h1>
+  <p class="sub">{total} markers catalogued across the eight counties — one list. Search the words on the plaques themselves, or narrow by family.</p>
+</header>
+<div class="fambreak">{''.join(chips)}</div>
+<div class="filters">
+  <input type="search" id="q" placeholder="Search by name, plaque text or place…" aria-label="Search markers">
+  <div class="fbtns">{''.join(btns)}</div>
+  <p class="showing" id="showing">Showing {total} of {total} markers · listed A–Z by name</p>
+</div>
+<div id="list">
+{''.join(rows)}
+</div>
+<footer>Reading the Roadside · The Gold Country Markers Catalogue · Compiled Nov 16, 2026<br>
+<a href="index.html">Back to the catalogue</a></footer>
 </div>
 <script>
 var q = document.getElementById('q'), fam = 'all',
@@ -536,6 +615,19 @@ def patch_summary(counties):
         src = src.replace("</style>", dark_css + "</style>", 1)
         done["dark_mode"] = True
 
+    # 8. All-markers tile at the head of the §9 Browse tiles (Dave, Nov 20,
+    # 2026): one list for the whole catalogue, standard filter treatment.
+    done["all_tile"] = "all.html" in src
+    if not done["all_tile"]:
+        anchor = src.find("Browse the collections")
+        tiles_at = src.find('<div class="tiles">', anchor) if anchor > -1 else -1
+        if tiles_at > -1:
+            total_all = sum(len(v) for v in counties.values())
+            tile = (f'<div class="tile"><a href="all.html" style="text-decoration:none;color:inherit">'
+                    f'<span class="n">{total_all}</span><span class="l">All markers — one list &rarr;</span></a></div>')
+            src = src[:tiles_at + len('<div class="tiles">')] + tile + src[tiles_at + len('<div class="tiles">'):]
+            done["all_tile"] = True
+
     p.write_text(src)
     return done
 
@@ -554,6 +646,8 @@ def main():
             total += 1
         print(f"{county}: {len(recs)} detail pages + list page")
     print(f"detail pages total: {total}")
+    (REPO / "all.html").write_text(all_page(counties))
+    print(f"all-markers listing: all.html ({total} rows)")
     done = patch_summary(counties)
     print("summary patch:", done)
 
