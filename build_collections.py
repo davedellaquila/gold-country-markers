@@ -628,6 +628,33 @@ def patch_summary(counties):
             src = src[:tiles_at + len('<div class="tiles">')] + tile + src[tiles_at + len('<div class="tiles">'):]
             done["all_tile"] = True
 
+    # 9. §3 bars encode each county's coverage fraction, not the raw count on
+    # a shared scale (Dave, Nov 22, 2026): gold fill = N/M of the track, so a
+    # full bar means a complete county; the label gains the percentage.
+    done["coverage_bars"] = 0
+    i3 = src.find("State landmark coverage")
+    if i3 > -1:
+        end3 = src.find("</svg>", i3)
+        seg = src[i3:end3]
+        pat = re.compile(
+            r'(<rect[^>]*fill="#e7ddc8"/>)'
+            r'(<rect[^>]*fill="#b8860b"/>)'
+            r'(<text[^>]*class="cvalue">)'
+            r'(\d+) of (\d+)(?: · \d+%)?'
+            r'(</text>)')
+
+        def _cov(m):
+            bg, fg, open_t, n, d, close_t = m.groups()
+            n, d = int(n), int(d)
+            track = float(re.search(r'width="([\d.]+)"', bg).group(1))
+            fg = re.sub(r'width="[\d.]+"', f'width="{n / d * track:.1f}"', fg, count=1)
+            return f"{bg}{fg}{open_t}{n} of {d} · {round(100 * n / d)}%{close_t}"
+
+        seg, cnt = pat.subn(_cov, seg)
+        if cnt:
+            src = src[:i3] + seg + src[end3:]
+            done["coverage_bars"] = cnt
+
     p.write_text(src)
     return done
 
