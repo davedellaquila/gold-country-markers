@@ -409,13 +409,13 @@ def all_page(counties):
 <header>
   <p class="kicker">Gold Country · California</p>
   <h1>All markers</h1>
-  <p class="sub">{total} markers catalogued across the eight counties — one list. Search the words on the plaques themselves, or narrow by family.</p>
+  <p class="sub">{total} markers catalogued across the eight counties — one list. Search the words on the plaques themselves, or narrow by family. The order is shuffled fresh each day, so the mix runs across all eight counties.</p>
 </header>
 <div class="fambreak">{''.join(chips)}</div>
 <div class="filters">
   <input type="search" id="q" placeholder="Search by name, plaque text or place…" aria-label="Search markers">
   <div class="fbtns">{''.join(btns)}</div>
-  <p class="showing" id="showing">Showing {total} of {total} markers · listed A–Z by name</p>
+  <p class="showing" id="showing">Showing {total} of {total} markers · in today's shuffled order</p>
 </div>
 <div id="list">
 {''.join(rows)}
@@ -423,6 +423,25 @@ def all_page(counties):
 <footer>Reading the Roadside · The Gold Country Markers Catalogue · Compiled Nov 16, 2026<br>
 <a href="index.html">Back to the catalogue</a></footer>
 </div>
+<script>
+// Daily seeded shuffle (Dave, Nov 26, 2026): the same mixed order for every
+// visitor all day (seed = today's date in America/Los_Angeles), stable while
+// browsing, a fresh mix tomorrow — the first screen spreads across towns and
+// counties instead of walking the catalogue in one fixed order.
+(function() {{
+  var list = document.getElementById('list'); if (!list) return;
+  var rows = Array.prototype.slice.call(list.children);
+  var day;
+  try {{ day = new Intl.DateTimeFormat('en-CA', {{ timeZone: 'America/Los_Angeles' }}).format(new Date()); }}
+  catch (e) {{ day = new Date().toISOString().slice(0, 10); }}
+  var h = 2166136261, s = 'markers-' + day;
+  for (var i = 0; i < s.length; i++) {{ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }}
+  var a = h >>> 0;
+  function rnd() {{ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }}
+  for (var i = rows.length - 1; i > 0; i--) {{ var j = Math.floor(rnd() * (i + 1)); var tmp = rows[i]; rows[i] = rows[j]; rows[j] = tmp; }}
+  rows.forEach(function(r) {{ list.appendChild(r); }});
+}})();
+</script>
 <script>
 var q = document.getElementById('q'), fam = 'all',
     rows = Array.prototype.slice.call(document.querySelectorAll('.mrow')),
@@ -435,7 +454,7 @@ function apply() {{
     row.classList.toggle('hidden', !ok);
     if (ok) n++;
   }});
-  showing.textContent = 'Showing ' + n + ' of ' + total + ' markers · listed A–Z by name';
+  showing.textContent = 'Showing ' + n + ' of ' + total + ' markers · in today's shuffled order';
 }}
 q.addEventListener('input', apply);
 document.querySelectorAll('.fbtn').forEach(function(b) {{
